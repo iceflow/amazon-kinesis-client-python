@@ -29,6 +29,7 @@ class RecordProcessor(kcl.RecordProcessorBase):
         self.SLEEP_SECONDS = 5
         self.CHECKPOINT_RETRIES = 5
         self.CHECKPOINT_FREQ_SECONDS = 60
+        self.shard_id = "None"
 
     def initialize(self, shard_id):
         '''
@@ -37,6 +38,7 @@ class RecordProcessor(kcl.RecordProcessorBase):
         :type shard_id: str
         :param shard_id: The shard id that this processor is going to be working on.
         '''
+        self.shard_id = shard_id
         self.largest_seq = None
         self.last_checkpoint_time = time.time()
 
@@ -120,6 +122,8 @@ class RecordProcessor(kcl.RecordProcessorBase):
                 self.process_record(data, key, seq)
                 if self.largest_seq == None or seq > self.largest_seq:
                     self.largest_seq = seq
+
+                print("LEO: Process record at {shard_id} : data[{data}] seq[{seq}] partitionKey[{key}]".format(shard_id=self.shard_id, data=data, seq=seq, key=key))
             # Checkpoints every 60 seconds
             if time.time() - self.last_checkpoint_time > self.CHECKPOINT_FREQ_SECONDS:
                 self.checkpoint(checkpointer, str(self.largest_seq))
